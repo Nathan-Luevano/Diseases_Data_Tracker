@@ -6,10 +6,10 @@ from PyQt6.QtWidgets import (
     QComboBox
 )
 
-from pages.dashboard_page import create_dashboard_page
-from pages.heatmap_page import create_heatmap_page
-from pages.stats_page import create_stats_page
-from pages.settings_page import create_settings_page
+from pages.dashboard import create_dashboard_page
+from pages.heatmap import create_heatmap_page
+from pages.stats import create_stats_page
+from pages.settings import create_settings_page
 
 from widgets import ResizeHandle
 
