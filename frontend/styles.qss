@@ -1,0 +1,42 @@
+QMainWindow {
+    background-color: #1E1E2F;
+}
+#MainContainer {
+    background-color: #1E1E2F;
+}
+#TitleBar {
+    background-color: #27293D;
+    height: 40px;
+}
+#TitleBarButton {
+    background-color: #2F3044;
+    border: none;
+    color: #FFFFFF;
+    font-size: 14px;
+}
+#TitleBarButton:hover {
+    background-color: #444561;
+}
+#NavFrame {
+    background-color: #2F3044;
+}
+#NavButton {
+    background-color: #2F3044;
+    border: none;
+    color: #FFFFFF;
+}
+#NavButton:hover {
+    background-color: #444561;
+}
+#ContentFrame {
+    background-color: #1E1E2F;
+}
+#StackedWidget {
+    background-color: #1E1E2F;
+}
+#Overlay {
+    background-color: rgba(0, 0, 0, 128);
+}
+#FilterSidebar {
+    background-color: #2F3044;
+}
