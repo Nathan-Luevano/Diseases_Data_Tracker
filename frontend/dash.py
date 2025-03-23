@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import (
     QComboBox
 )
 
-from pages.dashboard import create_dashboard_page
+# from pages.dashboard import create_dashboard_page
 from pages.heatmap import create_heatmap_page
 from pages.stats import create_stats_page
 from pages.settings import create_settings_page
@@ -43,7 +43,7 @@ class ModernDashboard(QMainWindow):
         
         main_layout.addWidget(content_frame)
 
-        self.dashboard_page = create_dashboard_page()
+        # self.dashboard_page = create_dashboard_page()
         
         self.heatmap_page, self.filter_sidebar_inpage = create_heatmap_page(
             self.toggle_inpage_sidebar
@@ -52,7 +52,7 @@ class ModernDashboard(QMainWindow):
         self.stats_page = create_stats_page()
         self.settings_page = create_settings_page()
 
-        self.stacked_widget.addWidget(self.dashboard_page)
+        # self.stacked_widget.addWidget(self.dashboard_page)
         self.stacked_widget.addWidget(self.heatmap_page)
         self.stacked_widget.addWidget(self.stats_page)
         self.stacked_widget.addWidget(self.settings_page)
@@ -143,12 +143,12 @@ class ModernDashboard(QMainWindow):
         nav_layout.setContentsMargins(0, 20, 0, 20)
         nav_layout.setSpacing(20)
 
-        btn_dashboard = QPushButton()
-        btn_dashboard.setIcon(QIcon("./icons/house.svg"))
-        btn_dashboard.setObjectName("NavButton")
-        btn_dashboard.setFixedSize(40, 40)
-        btn_dashboard.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(0))
-        nav_layout.addWidget(btn_dashboard, 0, Qt.AlignmentFlag.AlignHCenter)
+        # btn_dashboard = QPushButton()
+        # btn_dashboard.setIcon(QIcon("./icons/house.svg"))
+        # btn_dashboard.setObjectName("NavButton")
+        # btn_dashboard.setFixedSize(40, 40)
+        # btn_dashboard.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(0))
+        # nav_layout.addWidget(btn_dashboard, 0, Qt.AlignmentFlag.AlignHCenter)
 
         btn_heatmap = QPushButton()
         btn_heatmap.setIcon(QIcon("./icons/gradient.svg"))
