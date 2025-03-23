@@ -1,11 +1,14 @@
-from PyQt6.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout, QLabel, QWidget, QPushButton, QComboBox
-from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout, QLabel, QWidget, QPushButton, QComboBox, QSizePolicy
+from PyQt6.QtCore import Qt, QUrl
 from PyQt6.QtGui import QIcon
+from PyQt6.QtWebEngineWidgets import QWebEngineView
+from PyQt6.QtWebEngineCore import QWebEngineSettings
+
 
 def create_heatmap_page(toggle_inpage_sidebar_callback):
     """
-    pass in any callback or data the page needs. 
-    For example, a function reference for toggling sidebars.
+    Create the heatmap page with an embedded QWebEngineView to display the heatmap HTML file.
+    The displayed file is updated automatically based on filter selections.
     """
     page = QFrame()
     layout = QHBoxLayout(page)
@@ -27,10 +30,25 @@ def create_heatmap_page(toggle_inpage_sidebar_callback):
     header_layout.addWidget(filter_button)
     content_layout.addLayout(header_layout)
     
-    label = QLabel("Heatmap Page Content Here")
-    label.setStyleSheet("color: #FFFFFF; font-size: 18px;")
-    label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-    content_layout.addWidget(label)
+    # # Title label
+    # title_label = QLabel("Heatmap Page")
+    # title_label.setStyleSheet("color: #FFFFFF; font-size: 18px;")
+    # title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    # content_layout.addWidget(title_label)
+    
+    heatmap_display = QWebEngineView()
+    heatmap_display.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+    
+    default_disease = "COVID-19"
+    default_year = "Past-4-Weeks"  
+    safe_disease = default_disease.replace(" ", "_")
+    safe_year = default_year.replace(" ", "")
+    print(safe_disease, safe_year)
+    default_filename = f"/home/natelue/Documents/Term Proj (SYST 230)/backend/heatmap_{safe_disease}_{safe_year}.html"
+    heatmap_display.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True)
+    heatmap_display.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
+    heatmap_display.setUrl(QUrl.fromLocalFile(default_filename))
+    content_layout.addWidget(heatmap_display)
     
     sidebar = QFrame()
     sidebar.setObjectName("InpageSidebar")
@@ -59,7 +77,7 @@ def create_heatmap_page(toggle_inpage_sidebar_callback):
     sidebar_layout.addWidget(disease_label)
     
     disease_combo = QComboBox()
-    disease_combo.addItems(["COVID-19", "Flu", "RSV"])
+    disease_combo.addItems(["COVID-19", "RSV"])
     disease_combo.setStyleSheet("""
         QComboBox {
             background-color: #2F3044;
@@ -79,7 +97,7 @@ def create_heatmap_page(toggle_inpage_sidebar_callback):
     sidebar_layout.addWidget(year_label)
     
     year_combo = QComboBox()
-    year_combo.addItems(["2020", "2021", "2022", "2023"])
+    year_combo.addItems(["Past-4-Weeks","2023", "2022", "2021", "2020","2019","2018","2017" ])
     year_combo.setStyleSheet("""
         QComboBox {
             background-color: #2F3044;
@@ -101,5 +119,21 @@ def create_heatmap_page(toggle_inpage_sidebar_callback):
     layout.addWidget(sidebar)
     layout.setStretch(0, 1)
     layout.setStretch(1, 0)
+    
+    def update_heatmap():
+        selected_disease = disease_combo.currentText()
+        selected_year = year_combo.currentText()
+        safe_disease = selected_disease.replace(" ", "_")
+        safe_year = selected_year.replace(" ", "")
+
+        heatmap_display.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True)
+        heatmap_display.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
+        print(safe_disease, safe_year)
+        filename = f"/home/natelue/Documents/Term Proj (SYST 230)/backend/heatmap_{safe_disease}_{safe_year}.html"
+        file_url = QUrl.fromLocalFile(filename)
+        heatmap_display.setUrl(file_url)
+    
+    disease_combo.currentIndexChanged.connect(update_heatmap)
+    year_combo.currentIndexChanged.connect(update_heatmap)
     
     return page, sidebar
