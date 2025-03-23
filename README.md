@@ -5,7 +5,7 @@ Application where you can find up to date data on positive tests of various dise
 
 Ensure you have Python and pip installed. Then, run:
 
-```pip install -r requirements.txt```
+```pip install requests-html pyqt6```
 
 To run the application:
 
