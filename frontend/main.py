@@ -1,6 +1,6 @@
 import sys
 from PyQt6.QtWidgets import QApplication
-from modern_dash import ModernDashboard
+from dash import ModernDashboard
 
 def main():
     app = QApplication(sys.argv)
