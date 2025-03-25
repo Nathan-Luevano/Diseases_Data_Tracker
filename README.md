@@ -11,6 +11,4 @@ Ensure you have Python and pip installed. Then, run:
 ---
 # Running:
 
-- Currently the frontend and backend are working separately.
-- **Frontend** = Run the main.py in the structure it is currently.
-- **Backend** = Run backend_processor.py
+Just run the main.py file with the current file structure.
