@@ -6,12 +6,12 @@ from PyQt6.QtWidgets import (
     QComboBox
 )
 
-# from pages.dashboard import create_dashboard_page
-from pages.heatmap import create_heatmap_page
-from pages.stats import create_stats_page
-from pages.settings import create_settings_page
+from frontend.pages.dashboard import create_dashboard_page
+from frontend.pages.heatmap import create_heatmap_page
+from frontend.pages.stats import create_stats_page
+from frontend.pages.settings import create_settings_page
 
-from widgets import ResizeHandle
+from frontend.widgets import ResizeHandle
 
 class ModernDashboard(QMainWindow):
     def __init__(self):
@@ -43,7 +43,7 @@ class ModernDashboard(QMainWindow):
         
         main_layout.addWidget(content_frame)
 
-        # self.dashboard_page = create_dashboard_page()
+        self.dashboard_page = create_dashboard_page()
         
         self.heatmap_page, self.filter_sidebar_inpage = create_heatmap_page(
             self.toggle_inpage_sidebar
@@ -52,7 +52,7 @@ class ModernDashboard(QMainWindow):
         self.stats_page = create_stats_page()
         self.settings_page = create_settings_page()
 
-        # self.stacked_widget.addWidget(self.dashboard_page)
+        self.stacked_widget.addWidget(self.dashboard_page)
         self.stacked_widget.addWidget(self.heatmap_page)
         self.stacked_widget.addWidget(self.stats_page)
         self.stacked_widget.addWidget(self.settings_page)
@@ -83,27 +83,27 @@ class ModernDashboard(QMainWindow):
         title_bar_frame.mouseMoveEvent = self.title_bar_mouseMoveEvent
 
         self.title_label = QLabel("Health Dashboard")
-        self.title_label.setStyleSheet("color: #FFFFFF; font-size: 16px;")
+        self.title_label.setStyleSheet("color: #FFFFFF; font-size: 16px; border-radius: 10px")
         title_bar_layout.addWidget(self.title_label)
 
         title_bar_layout.addStretch()
 
         btn_minimize = QPushButton()
-        btn_minimize.setIcon(QIcon("./icons/minus.svg"))
+        btn_minimize.setIcon(QIcon("./frontend/icons/minus.svg"))
         btn_minimize.setObjectName("TitleBarButton")
         btn_minimize.setFixedSize(30, 30)
         btn_minimize.clicked.connect(self.showMinimized)
         title_bar_layout.addWidget(btn_minimize)
 
         self.btn_maximize = QPushButton()
-        self.btn_maximize.setIcon(QIcon("./icons/corners-out.svg"))
+        self.btn_maximize.setIcon(QIcon("./frontend/icons/corners-out.svg"))
         self.btn_maximize.setObjectName("TitleBarButton")
         self.btn_maximize.setFixedSize(30, 30)
         self.btn_maximize.clicked.connect(self.toggle_max_restore)
         title_bar_layout.addWidget(self.btn_maximize)
 
         btn_close = QPushButton()
-        btn_close.setIcon(QIcon("./icons/x.svg"))
+        btn_close.setIcon(QIcon("./frontend/icons/x.svg"))
         btn_close.setObjectName("TitleBarButton")
         btn_close.setFixedSize(30, 30)
         btn_close.clicked.connect(self.close)
@@ -127,12 +127,12 @@ class ModernDashboard(QMainWindow):
             self.showMaximized()
             self.resize_handle.hide()
             self._is_maximized = True
-            self.btn_maximize.setIcon(QIcon("./icons/corners-in.svg"))
+            self.btn_maximize.setIcon(QIcon("./frontend/icons/corners-in.svg"))
         else:
             self.showNormal()
             self._is_maximized = False
             self.resize_handle.show()
-            self.btn_maximize.setIcon(QIcon("./icons/corners-out.svg"))
+            self.btn_maximize.setIcon(QIcon("./frontend/icons/corners-out.svg"))
 
     def create_left_nav(self):
         nav_frame = QFrame()
@@ -143,29 +143,29 @@ class ModernDashboard(QMainWindow):
         nav_layout.setContentsMargins(0, 20, 0, 20)
         nav_layout.setSpacing(20)
 
-        # btn_dashboard = QPushButton()
-        # btn_dashboard.setIcon(QIcon("./icons/house.svg"))
-        # btn_dashboard.setObjectName("NavButton")
-        # btn_dashboard.setFixedSize(40, 40)
-        # btn_dashboard.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(0))
-        # nav_layout.addWidget(btn_dashboard, 0, Qt.AlignmentFlag.AlignHCenter)
+        btn_dashboard = QPushButton()
+        btn_dashboard.setIcon(QIcon("./frontend/icons/house.svg"))
+        btn_dashboard.setObjectName("NavButton")
+        btn_dashboard.setFixedSize(40, 40)
+        btn_dashboard.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(0))
+        nav_layout.addWidget(btn_dashboard, 0, Qt.AlignmentFlag.AlignHCenter)
 
         btn_heatmap = QPushButton()
-        btn_heatmap.setIcon(QIcon("./icons/gradient.svg"))
+        btn_heatmap.setIcon(QIcon("./frontend/icons/gradient.svg"))
         btn_heatmap.setObjectName("NavButton")
         btn_heatmap.setFixedSize(40, 40)
         btn_heatmap.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(1))
         nav_layout.addWidget(btn_heatmap, 0, Qt.AlignmentFlag.AlignHCenter)
 
         btn_stats = QPushButton()
-        btn_stats.setIcon(QIcon("./icons/chart-line.svg"))
+        btn_stats.setIcon(QIcon("./frontend/icons/chart-line.svg"))
         btn_stats.setObjectName("NavButton")
         btn_stats.setFixedSize(40, 40)
         btn_stats.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(2))
         nav_layout.addWidget(btn_stats, 0, Qt.AlignmentFlag.AlignHCenter)
 
         btn_settings = QPushButton()
-        btn_settings.setIcon(QIcon("./icons/faders-fill.svg"))
+        btn_settings.setIcon(QIcon("./frontend/icons/faders-fill.svg"))
         btn_settings.setObjectName("NavButton")
         btn_settings.setFixedSize(40, 40)
         btn_settings.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(3))
@@ -177,7 +177,7 @@ class ModernDashboard(QMainWindow):
     def create_overlay(self):
         overlay = QFrame()
         overlay.setObjectName("Overlay")
-        overlay.setStyleSheet("background-color: rgba(0, 0, 0, 128);")
+        overlay.setStyleSheet("background-color: rgba(0, 0, 0, 128); border-radius: 10px")
         overlay.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         overlay.mousePressEvent = self.overlay_mouse_press
         return overlay
@@ -200,25 +200,25 @@ class ModernDashboard(QMainWindow):
         sidebar_layout.addWidget(close_button, 0, Qt.AlignmentFlag.AlignRight)
 
         label = QLabel("Filter Options")
-        label.setStyleSheet("color: #FFFFFF; font-size: 16px;")
+        label.setStyleSheet("color: #FFFFFF; font-size: 16px; border-radius: 10px")
         sidebar_layout.addWidget(label)
 
         disease_label = QLabel("Disease:")
-        disease_label.setStyleSheet("color: #FFFFFF;")
+        disease_label.setStyleSheet("color: #FFFFFF; border-radius: 10px")
         sidebar_layout.addWidget(disease_label)
 
         self.disease_combo = QComboBox()
         self.disease_combo.addItems(["COVID-19", "Flu", "RSV"])
-        self.disease_combo.setStyleSheet("background-color: #2F3044; color: #FFFFFF;")
+        self.disease_combo.setStyleSheet("background-color: #2F3044; color: #FFFFFF; border-radius: 10px")
         sidebar_layout.addWidget(self.disease_combo)
 
         year_label = QLabel("Year:")
-        year_label.setStyleSheet("color: #FFFFFF;")
+        year_label.setStyleSheet("color: #FFFFFF; border-radius: 10px")
         sidebar_layout.addWidget(year_label)
 
         self.year_combo = QComboBox()
         self.year_combo.addItems(["2020", "2021", "2022", "2023"])
-        self.year_combo.setStyleSheet("background-color: #2F3044; color: #FFFFFF;")
+        self.year_combo.setStyleSheet("background-color: #2F3044; color: #FFFFFF; border-radius: 10px")
         sidebar_layout.addWidget(self.year_combo)
 
         sidebar_layout.addStretch()

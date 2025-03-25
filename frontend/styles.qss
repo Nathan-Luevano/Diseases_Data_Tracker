@@ -1,42 +1,54 @@
 QMainWindow {
     background-color: #1E1E2F;
+    border-radius: 10px
 }
 #MainContainer {
     background-color: #1E1E2F;
+    border-radius: 10px
 }
 #TitleBar {
     background-color: #27293D;
     height: 40px;
+    border-radius: 10px
 }
 #TitleBarButton {
     background-color: #2F3044;
     border: none;
     color: #FFFFFF;
     font-size: 14px;
+    border-radius: 10px
 }
 #TitleBarButton:hover {
     background-color: #444561;
+    border-radius: 10px
 }
 #NavFrame {
     background-color: #2F3044;
+    border-radius: 10px
 }
 #NavButton {
     background-color: #2F3044;
     border: none;
     color: #FFFFFF;
+    border-radius: 10px
 }
 #NavButton:hover {
     background-color: #444561;
+    border-radius: 10px
 }
 #ContentFrame {
     background-color: #1E1E2F;
+    border-radius: 10px
 }
 #StackedWidget {
     background-color: #1E1E2F;
+    border-radius: 10px
 }
 #Overlay {
     background-color: rgba(0, 0, 0, 128);
+    border-radius: 10px
 }
 #FilterSidebar {
     background-color: #2F3044;
+    border-radius: 10px
 }

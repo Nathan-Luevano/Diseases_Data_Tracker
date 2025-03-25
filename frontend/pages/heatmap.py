@@ -24,8 +24,8 @@ def create_heatmap_page(toggle_inpage_sidebar_callback):
     header_layout.addStretch()
     
     filter_button = QPushButton()
-    filter_button.setIcon(QIcon("./icons/funnel-fill.svg"))
-    filter_button.setStyleSheet("color: #FFFFFF; font-size: 16px;")
+    filter_button.setIcon(QIcon("./frontend/icons/funnel-fill.svg"))
+    filter_button.setStyleSheet("color: #FFFFFF; font-size: 16px; border-radius: 10px")
     filter_button.clicked.connect(toggle_inpage_sidebar_callback)
     header_layout.addWidget(filter_button)
     content_layout.addLayout(header_layout)
@@ -43,7 +43,6 @@ def create_heatmap_page(toggle_inpage_sidebar_callback):
     default_year = "Past-4-Weeks"  
     safe_disease = default_disease.replace(" ", "_")
     safe_year = default_year.replace(" ", "")
-    print(safe_disease, safe_year)
     default_filename = f"/home/natelue/Documents/Term Proj (SYST 230)/backend/heatmap_{safe_disease}_{safe_year}.html"
     heatmap_display.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True)
     heatmap_display.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
@@ -57,6 +56,7 @@ def create_heatmap_page(toggle_inpage_sidebar_callback):
             background-color: #232430;  
             border-top-left-radius: 15px;
             border-bottom-left-radius: 15px;
+            border-radius: 10px
         }
     """)
     sidebar_layout = QVBoxLayout(sidebar)
@@ -69,11 +69,11 @@ def create_heatmap_page(toggle_inpage_sidebar_callback):
     sidebar_layout.addWidget(close_button, 0, Qt.AlignmentFlag.AlignRight)
     
     label_filter = QLabel("Filter Options")
-    label_filter.setStyleSheet("color: #FFFFFF; font-size: 16px;")
+    label_filter.setStyleSheet("color: #FFFFFF; font-size: 16px; border-radius: 10px")
     sidebar_layout.addWidget(label_filter)
     
     disease_label = QLabel("Disease:")
-    disease_label.setStyleSheet("color: #FFFFFF;")
+    disease_label.setStyleSheet("color: #FFFFFF; border-radius: 10px")
     sidebar_layout.addWidget(disease_label)
     
     disease_combo = QComboBox()
@@ -85,9 +85,11 @@ def create_heatmap_page(toggle_inpage_sidebar_callback):
             border: 1px solid #1d1e2b;
             border-radius: 5px;
             padding: 5px;
+            border-radius: 10px
         }
         QComboBox::drop-down {
             border: none;
+            border-radius: 10px
         }
     """)
     sidebar_layout.addWidget(disease_combo)
@@ -105,9 +107,11 @@ def create_heatmap_page(toggle_inpage_sidebar_callback):
             border: 1px solid #1d1e2b;
             border-radius: 5px;
             padding: 5px;
+            border-radius: 10px
         }
         QComboBox::drop-down {
             border: none;
+            border-radius: 10px
         }
     """)
     sidebar_layout.addWidget(year_combo)
@@ -128,7 +132,6 @@ def create_heatmap_page(toggle_inpage_sidebar_callback):
 
         heatmap_display.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True)
         heatmap_display.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
-        print(safe_disease, safe_year)
         filename = f"/home/natelue/Documents/Term Proj (SYST 230)/backend/heatmap_{safe_disease}_{safe_year}.html"
         file_url = QUrl.fromLocalFile(filename)
         heatmap_display.setUrl(file_url)

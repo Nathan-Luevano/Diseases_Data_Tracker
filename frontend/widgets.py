@@ -7,8 +7,8 @@ class ResizeHandle(QFrame):
         super().__init__(parent)
         self.setFixedSize(20, 20)
         self.setCursor(Qt.CursorShape.SizeFDiagCursor)
-        self.icon = QIcon("./icons/notches.svg")
-        self.setStyleSheet("background-color: transparent;")
+        self.icon = QIcon("./frontend/icons/notches.svg")
+        self.setStyleSheet("background-color: transparent; border-radius: 10px")
         self._drag_active = False
         self._drag_start_pos = None
         self._start_window_size = None

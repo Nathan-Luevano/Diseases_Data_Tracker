@@ -12,7 +12,7 @@ def create_dashboard_page():
     layout.addLayout(header_layout)
 
     placeholder_label = QLabel("Dashboard Page Content Here")
-    placeholder_label.setStyleSheet("color: #FFFFFF; font-size: 18px;")
+    placeholder_label.setStyleSheet("color: #FFFFFF; font-size: 18px; border-radius: 10px")
     placeholder_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
     layout.addWidget(placeholder_label)
 
