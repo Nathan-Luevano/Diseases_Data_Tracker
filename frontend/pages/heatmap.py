@@ -30,12 +30,6 @@ def create_heatmap_page(toggle_inpage_sidebar_callback):
     header_layout.addWidget(filter_button)
     content_layout.addLayout(header_layout)
     
-    # # Title label
-    # title_label = QLabel("Heatmap Page")
-    # title_label.setStyleSheet("color: #FFFFFF; font-size: 18px;")
-    # title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-    # content_layout.addWidget(title_label)
-    
     heatmap_display = QWebEngineView()
     heatmap_display.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
     
@@ -126,13 +120,25 @@ def create_heatmap_page(toggle_inpage_sidebar_callback):
     
     def update_heatmap():
         selected_disease = disease_combo.currentText()
+        
+        if selected_disease == "COVID-19":
+            year_combo.blockSignals(True)
+            year_combo.clear()
+            year_combo.addItems(["Past-4-Weeks"])
+            year_combo.blockSignals(False)
+        elif selected_disease == "RSV":
+            year_combo.blockSignals(True)
+            year_combo.clear()
+            year_combo.addItems(["2023", "2022", "2021", "2020", "2019", "2018", "2017"])
+            year_combo.blockSignals(False)
+        
         selected_year = year_combo.currentText()
         safe_disease = selected_disease.replace(" ", "_")
         safe_year = selected_year.replace(" ", "")
-
+        
         heatmap_display.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True)
         heatmap_display.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
-        filename = f"/home/natelue/Documents/Term Proj (SYST 230)/backend/heatmap_{safe_disease}_{safe_year}.html"
+        filename = f"/home/natelue/Documents/Term Proj (SYST 230)/DEMO/heatmap_{safe_disease}_{safe_year}.html"
         file_url = QUrl.fromLocalFile(filename)
         heatmap_display.setUrl(file_url)
     
