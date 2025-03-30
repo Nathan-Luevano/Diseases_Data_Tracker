@@ -3,7 +3,7 @@ from PyQt6.QtCore import Qt, QUrl
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtWebEngineCore import QWebEngineSettings
-
+from pathlib import Path
 
 def create_heatmap_page(toggle_inpage_sidebar_callback):
     """
@@ -37,10 +37,11 @@ def create_heatmap_page(toggle_inpage_sidebar_callback):
     default_year = "Past-4-Weeks"  
     safe_disease = default_disease.replace(" ", "_")
     safe_year = default_year.replace(" ", "")
-    default_filename = f"/home/natelue/Documents/Term Proj (SYST 230)/backend/heatmap_{safe_disease}_{safe_year}.html"
+    base_dir = Path(__file__).resolve().parent.parent.parent
+    default_filepath = base_dir / f"heatmap_{safe_disease}_{safe_year}.html"
     heatmap_display.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True)
     heatmap_display.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
-    heatmap_display.setUrl(QUrl.fromLocalFile(default_filename))
+    heatmap_display.setUrl(QUrl.fromLocalFile(str(default_filepath)))
     content_layout.addWidget(heatmap_display)
     
     sidebar = QFrame()
@@ -77,13 +78,12 @@ def create_heatmap_page(toggle_inpage_sidebar_callback):
             background-color: #2F3044;
             color: #FFFFFF;
             border: 1px solid #1d1e2b;
-            border-radius: 5px;
+            border-radius: 10px;
             padding: 5px;
-            border-radius: 10px
         }
         QComboBox::drop-down {
             border: none;
-            border-radius: 10px
+            border-radius: 10px;
         }
     """)
     sidebar_layout.addWidget(disease_combo)
@@ -99,13 +99,12 @@ def create_heatmap_page(toggle_inpage_sidebar_callback):
             background-color: #2F3044;
             color: #FFFFFF;
             border: 1px solid #1d1e2b;
-            border-radius: 5px;
+            border-radius: 10px;
             padding: 5px;
-            border-radius: 10px
         }
         QComboBox::drop-down {
             border: none;
-            border-radius: 10px
+            border-radius: 10px;
         }
     """)
     sidebar_layout.addWidget(year_combo)
@@ -120,26 +119,14 @@ def create_heatmap_page(toggle_inpage_sidebar_callback):
     
     def update_heatmap():
         selected_disease = disease_combo.currentText()
-        
-        if selected_disease == "COVID-19":
-            year_combo.blockSignals(True)
-            year_combo.clear()
-            year_combo.addItems(["Past-4-Weeks"])
-            year_combo.blockSignals(False)
-        elif selected_disease == "RSV":
-            year_combo.blockSignals(True)
-            year_combo.clear()
-            year_combo.addItems(["2023", "2022", "2021", "2020", "2019", "2018", "2017"])
-            year_combo.blockSignals(False)
-        
         selected_year = year_combo.currentText()
         safe_disease = selected_disease.replace(" ", "_")
         safe_year = selected_year.replace(" ", "")
-        
+        base_dir = Path(__file__).resolve().parent.parent.parent
+        filepath = base_dir / f"heatmap_{safe_disease}_{safe_year}.html"
         heatmap_display.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True)
         heatmap_display.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
-        filename = f"/home/natelue/Documents/Term Proj (SYST 230)/DEMO/heatmap_{safe_disease}_{safe_year}.html"
-        file_url = QUrl.fromLocalFile(filename)
+        file_url = QUrl.fromLocalFile(str(filepath))
         heatmap_display.setUrl(file_url)
     
     disease_combo.currentIndexChanged.connect(update_heatmap)
