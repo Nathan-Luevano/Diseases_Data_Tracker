@@ -6,24 +6,47 @@ from Backend.generate_heatmap import start_gen
 
 def scrape_cdc_covid_data():
     url = "https://covid.cdc.gov/covid-data-tracker/#maps_positivity-4-week"
-    
-    session = HTMLSession()
-    r = session.get(url)
-    
-    r.html.render(sleep=3)
-    
-    table = r.html.find("table", first=True)
-    if not table:
-        print("No table found.")
-        return []
-    
-    rows = table.find("tr")
-    data = []
-    
-    for row in rows:
-        cells = row.find("td, th")
-        data.append([cell.text for cell in cells])
-    return data
+    if sys.platform.startswith("win"):
+        from selenium import webdriver
+        from selenium.webdriver.chrome.service import Service
+        from selenium.webdriver.chrome.options import Options
+        from selenium.webdriver.common.by import By
+        import time
+
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--disable-gpu")
+        driver = webdriver.Chrome(options=chrome_options)
+        driver.get(url)
+        time.sleep(5)
+        try:
+            table = driver.find_element(By.TAG_NAME, "table")
+        except Exception as e:
+            print("No table found.", e)
+            driver.quit()
+            return []
+        rows = table.find_elements(By.TAG_NAME, "tr")
+        data = []
+        for row in rows:
+            cells = row.find_elements(By.XPATH, ".//td|.//th")
+            data.append([cell.text for cell in cells])
+        driver.quit()
+        return data
+    else:
+        from requests_html import HTMLSession
+        session = HTMLSession()
+        r = session.get(url)
+        r.html.render(sleep=3, timeout=20)
+        table = r.html.find("table", first=True)
+        if not table:
+            print("No table found.")
+            return []
+        rows = table.find("tr")
+        data = []
+        for r in rows:
+            cells = r.find("td, th")
+            data.append([c.text for c in cells])
+        return data
 
 def parse_covid_data(table_data):
     if not table_data:
