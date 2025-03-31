@@ -119,6 +119,16 @@ def create_heatmap_page(toggle_inpage_sidebar_callback):
     
     def update_heatmap():
         selected_disease = disease_combo.currentText()
+        if selected_disease == "COVID-19":
+            year_combo.blockSignals(True)
+            year_combo.clear()
+            year_combo.addItems(["Past-4-Weeks"])
+            year_combo.blockSignals(False)
+        elif selected_disease == "RSV":
+            year_combo.blockSignals(True)
+            year_combo.clear()
+            year_combo.addItems(["2023", "2022", "2021", "2020", "2019", "2018", "2017"])
+            year_combo.blockSignals(False)
         selected_year = year_combo.currentText()
         safe_disease = selected_disease.replace(" ", "_")
         safe_year = selected_year.replace(" ", "")
