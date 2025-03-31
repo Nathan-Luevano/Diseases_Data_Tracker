@@ -1,5 +1,6 @@
 import csv
 import sqlite3
+import sys
 import requests
 from requests_html import HTMLSession
 from Backend.generate_heatmap import start_gen
