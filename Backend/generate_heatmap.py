@@ -123,6 +123,8 @@ def start_gen():
         for year_val in config["years"]:
             safe_disease = disease.replace(" ", "_")
             safe_year = year_val.replace(" ", "_")
+            if safe_year == "Past_4_Weeks":
+                safe_year = "Past-4-Weeks"
             output_file = f"heatmap_{safe_disease}_{safe_year}.html"
 
             # print(f"Generating heatmap for {disease} ({metric_type}), filter '{year_val}'")
