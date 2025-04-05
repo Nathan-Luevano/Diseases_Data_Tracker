@@ -6,6 +6,37 @@ from requests_html import HTMLSession
 from Backend.generate_heatmap import start_gen
 from bs4 import BeautifulSoup
 
+def create_cache_table(db_name="health_data.db"):
+    conn = sqlite3.connect(db_name)
+    cursor = conn.cursor()
+    cursor.execute("""
+       CREATE TABLE IF NOT EXISTS scrape_cache (
+           url TEXT PRIMARY KEY,
+           etag TEXT
+       )
+    """)
+    conn.commit()
+    conn.close()
+
+def get_cached_etag(url, db_name="health_data.db"):
+    conn = sqlite3.connect(db_name)
+    cursor = conn.cursor()
+    cursor.execute("SELECT etag FROM scrape_cache WHERE url = ?", (url,))
+    row = cursor.fetchone()
+    conn.close()
+    if row:
+        return row[0]
+    return None
+
+def update_cached_etag(url, etag, db_name="health_data.db"):
+    conn = sqlite3.connect(db_name)
+    cursor = conn.cursor()
+    cursor.execute("INSERT OR REPLACE INTO scrape_cache (url, etag) VALUES (?, ?)", (url, etag))
+    conn.commit()
+    conn.close()
+
+# --- Data Extraction Functions ---
+
 def extract_covid_data_from_html(html_content):
     """
     Given the inner HTML content of the table, parse it and extract a list of
@@ -31,7 +62,20 @@ def extract_covid_data_from_html(html_content):
     return data
 
 def scrape_cdc_covid_data():
-    url = "https://covid.cdc.gov/covid-data-tracker/#maps_positivity-4-week"
+    covid_url = "https://covid.cdc.gov/covid-data-tracker/#maps_positivity-4-week"
+
+    
+    current_etag = None
+    try:
+        head_response = requests.head(covid_url)
+        current_etag = head_response.headers.get('ETag')
+        cached_etag = get_cached_etag(covid_url)
+        if current_etag and cached_etag == current_etag:
+            return []
+        else:
+            print("ETag changed or not available. Proceeding with scrape.")
+    except Exception as e:
+        print("Error checking ETag for CDC COVID data:", e)
     
     if sys.platform.startswith("win"):
         from selenium import webdriver
@@ -47,13 +91,15 @@ def scrape_cdc_covid_data():
         try:
             driver = webdriver.Chrome(options=chrome_options)
         except Exception as e:
+            print("Error initializing WebDriver:", e)
             return []
         
         try:
-            driver.get(url)
+            driver.get(covid_url)
             wait = WebDriverWait(driver, 15)
             table = wait.until(EC.presence_of_element_located((By.TAG_NAME, "table")))
         except Exception as e:
+            print("Error during page load or table detection:", e)
             driver.quit()
             return []
         
@@ -62,80 +108,69 @@ def scrape_cdc_covid_data():
         try:
             table_html = table.get_attribute("innerHTML")
         except Exception as e:
+            print("Error retrieving table innerHTML:", e)
             driver.quit()
             return []
         
         covid_data = extract_covid_data_from_html(table_html)
-
         driver.quit()
+
+        if current_etag:
+            update_cached_etag(covid_url, current_etag)
         return covid_data
     else:
-        from requests_html import HTMLSession
         session = HTMLSession()
-        r = session.get(url)
+        r = session.get(covid_url)
         r.html.render(sleep=3, timeout=20)
         table = r.html.find("table", first=True)
         if not table:
-            print("No table found.")
+            print("No table found in the rendered HTML.")
             return []
-        rows = table.find("tr")
-        data = []
-        for r in rows:
-            cells = r.find("td, th")
-            data.append([c.text for c in cells])
-        return data
-
-def parse_covid_data(table_data):
-    if not table_data:
-        return []
-    
-    header = table_data[0]
-    try:
-        state_index = header.index("State/Territory")
-    except ValueError:
-        state_index = 0
-    try:
-        positivity_index = header.index("Test positivity (%) in past week")
-    except ValueError:
-        positivity_index = 2
-    
-    results = []
-    for row in table_data[1:]:
-        if len(row) > max(state_index, positivity_index):
-            state = row[state_index]
-            positivity_str = row[positivity_index]
-            try:
-                positivity_val = float(positivity_str)
-            except ValueError:
-                positivity_val = 0.0
-            results.append((state, positivity_val, "Past 4 Weeks"))
-    return results
+        table_html = table.html
+        covid_data = extract_covid_data_from_html(table_html)
+        return covid_data
 
 def download_rsv_data():
     csv_url = "https://data.cdc.gov/api/views/29hc-w46k/rows.csv?accessType=DOWNLOAD"
     local_filename = "rsv_data.csv"
+    
+    current_etag = None
+    try:
+        head_response = requests.head(csv_url)
+        current_etag = head_response.headers.get('ETag')
+        cached_etag = get_cached_etag(csv_url)
+        if current_etag and cached_etag == current_etag:
+            return None
+        else:
+            print("ETag changed or not available for RSV data. Proceeding with download.")
+    except Exception as e:
+        print("Error checking ETag for RSV data:", e)
+    
     response = requests.get(csv_url)
-    with open(local_filename, "wb") as f:
-        f.write(response.content)
-    return local_filename
+    if response.status_code == 200:
+        with open(local_filename, "wb") as f:
+            f.write(response.content)
+        if current_etag:
+            update_cached_etag(csv_url, current_etag)
+        return local_filename
+    else:
+        print(f"Error downloading RSV data. Status code: {response.status_code}")
+        return None
 
 def parse_rsv_data(csv_filename):
     results = []
     with open(csv_filename, "r", encoding="utf-8") as f:
         reader = csv.DictReader(f)
-        for row in reader:
+        for i, row in enumerate(reader, start=1):
             state = row.get("State", "")
             rate_str = row.get("Cumulative Rate", "0")
             year_str = row.get("Week ending date")
             try:
                 rate_val = float(rate_str)
             except ValueError:
+                print(f"Row {i}: Could not convert rate '{rate_str}' to float. Defaulting to 0.0")
                 rate_val = 0.0
-            try:
-                year_val = year_str
-            except ValueError:
-                pass
-            results.append((state, rate_val, year_val))
+            results.append((state, rate_val, year_str))
     return results
 
 def create_tables(db_name="health_data.db"):
@@ -148,7 +183,7 @@ def create_tables(db_name="health_data.db"):
             state TEXT,
             metric_type TEXT,   -- e.g., "COVID_Positivity" or "RSV_Rate"
             metric_value REAL,
-            year INTEGER
+            year TEXT
         )
     """)
     
@@ -163,6 +198,7 @@ def create_tables(db_name="health_data.db"):
     
     conn.commit()
     conn.close()
+    create_cache_table(db_name)
 
 def insert_state_metrics(data, metric_type, db_name="health_data.db"):
     conn = sqlite3.connect(db_name)
@@ -198,19 +234,21 @@ def cleanup():
     except FileNotFoundError:
         print(f"Error: File '{file_path}' not found.")
 
-
 def back_main():
     create_tables()
     
-    table_data = scrape_cdc_covid_data()
-    covid_data = parse_covid_data(table_data)
-    
-    insert_state_metrics(covid_data, metric_type="COVID_Positivity")
+    covid_data = scrape_cdc_covid_data()
+    if not covid_data:
+        print("No new CDC COVID data to update (ETag unchanged).")
+    else:
+        insert_state_metrics(covid_data, metric_type="COVID_Positivity")
     
     rsv_csv = download_rsv_data()
-    rsv_data = parse_rsv_data(rsv_csv)
-    
-    insert_state_metrics(rsv_data, metric_type="RSV_Rate")
+    if rsv_csv is None:
+        print("No new RSV data to update (ETag unchanged).")
+    else:
+        rsv_data = parse_rsv_data(rsv_csv)
+        insert_state_metrics(rsv_data, metric_type="RSV_Rate")
     
     STATE_CENTROIDS = {
         "Alabama": (33.5207, -86.8025),        # Birmingham
@@ -273,6 +311,6 @@ def back_main():
 
     start_gen()
 
-
+# Uncomment the following lines to run the main process directly:
 # if __name__ == "__main__":
-#     sys.exit(main())
+#     back_main()
