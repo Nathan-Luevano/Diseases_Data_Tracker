@@ -4,35 +4,71 @@ import sys
 import requests
 from requests_html import HTMLSession
 from Backend.generate_heatmap import start_gen
+from bs4 import BeautifulSoup
+
+def extract_covid_data_from_html(html_content):
+    """
+    Given the inner HTML content of the table, parse it and extract a list of
+    tuples containing (state, test positivity, "Past 4 Weeks").
+    """
+    soup = BeautifulSoup(html_content, 'html.parser')
+    tbody = soup.find('tbody')
+    data = []
+    if tbody:
+        rows = tbody.find_all('tr')
+        for row in rows:
+            cells = row.find_all(['th', 'td'])
+            if len(cells) >= 3:
+                state = cells[0].get_text(strip=True)
+                positivity_text = cells[2].get_text(strip=True)
+                try:
+                    positivity = float(positivity_text)
+                except ValueError:
+                    positivity = 0.0
+                data.append((state, positivity, "Past 4 Weeks"))
+    else:
+        print("No <tbody> found in the HTML.")
+    return data
 
 def scrape_cdc_covid_data():
     url = "https://covid.cdc.gov/covid-data-tracker/#maps_positivity-4-week"
+    
     if sys.platform.startswith("win"):
         from selenium import webdriver
-        from selenium.webdriver.chrome.service import Service
         from selenium.webdriver.chrome.options import Options
         from selenium.webdriver.common.by import By
+        from selenium.webdriver.support.ui import WebDriverWait
+        from selenium.webdriver.support import expected_conditions as EC
         import time
 
         chrome_options = Options()
         chrome_options.add_argument("--headless")
         chrome_options.add_argument("--disable-gpu")
-        driver = webdriver.Chrome(options=chrome_options)
-        driver.get(url)
-        time.sleep(5)
         try:
-            table = driver.find_element(By.TAG_NAME, "table")
+            driver = webdriver.Chrome(options=chrome_options)
         except Exception as e:
-            print("No table found.", e)
+            return []
+        
+        try:
+            driver.get(url)
+            wait = WebDriverWait(driver, 15)
+            table = wait.until(EC.presence_of_element_located((By.TAG_NAME, "table")))
+        except Exception as e:
             driver.quit()
             return []
-        rows = table.find_elements(By.TAG_NAME, "tr")
-        data = []
-        for row in rows:
-            cells = row.find_elements(By.XPATH, ".//td|.//th")
-            data.append([cell.text for cell in cells])
+        
+        time.sleep(5)
+        
+        try:
+            table_html = table.get_attribute("innerHTML")
+        except Exception as e:
+            driver.quit()
+            return []
+        
+        covid_data = extract_covid_data_from_html(table_html)
+
         driver.quit()
-        return data
+        return covid_data
     else:
         from requests_html import HTMLSession
         session = HTMLSession()
