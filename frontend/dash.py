@@ -9,7 +9,6 @@ from PyQt6.QtWidgets import (
 from frontend.pages.dashboard import create_dashboard_page
 from frontend.pages.heatmap import create_heatmap_page
 from frontend.pages.stats import create_stats_page
-from frontend.pages.settings import create_settings_page
 
 from frontend.widgets import ResizeHandle
 
@@ -43,19 +42,17 @@ class ModernDashboard(QMainWindow):
         
         main_layout.addWidget(content_frame)
 
-        self.dashboard_page = create_dashboard_page()
+        self.dashboard_page = create_dashboard_page(self.navigate_to_heatmap, self.navigate_to_stats)
         
         self.heatmap_page, self.filter_sidebar_inpage = create_heatmap_page(
             self.toggle_inpage_sidebar
         )
 
         self.stats_page = create_stats_page()
-        self.settings_page = create_settings_page()
 
         self.stacked_widget.addWidget(self.dashboard_page)
         self.stacked_widget.addWidget(self.heatmap_page)
         self.stacked_widget.addWidget(self.stats_page)
-        self.stacked_widget.addWidget(self.settings_page)
 
         self.overlay = self.create_overlay()
         self.overlay.setParent(self)
@@ -71,6 +68,13 @@ class ModernDashboard(QMainWindow):
         self.resize_handle.show()
 
         self.sidebar_animation = None
+
+    def navigate_to_heatmap(self):
+        self.stacked_widget.setCurrentIndex(1)  # Assumes heatmap page is at index 1
+
+    def navigate_to_stats(self):
+        self.stacked_widget.setCurrentIndex(2)  # Assumes statistics page is at index 2
+
 
     def create_title_bar(self):
         title_bar_frame = QFrame()
