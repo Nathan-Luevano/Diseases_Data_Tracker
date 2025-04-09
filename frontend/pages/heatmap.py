@@ -93,7 +93,7 @@ def create_heatmap_page(toggle_inpage_sidebar_callback):
     sidebar_layout.addWidget(year_label)
     
     year_combo = QComboBox()
-    year_combo.addItems(["Past-4-Weeks","2023", "2022", "2021", "2020","2019","2018","2017" ])
+    year_combo.addItems(["Past-4-Weeks" ])
     year_combo.setStyleSheet("""
         QComboBox {
             background-color: #2F3044;
