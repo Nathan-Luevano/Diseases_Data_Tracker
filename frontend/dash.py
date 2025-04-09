@@ -70,11 +70,10 @@ class ModernDashboard(QMainWindow):
         self.sidebar_animation = None
 
     def navigate_to_heatmap(self):
-        self.stacked_widget.setCurrentIndex(1)  # Assumes heatmap page is at index 1
+        self.stacked_widget.setCurrentIndex(1)  
 
     def navigate_to_stats(self):
-        self.stacked_widget.setCurrentIndex(2)  # Assumes statistics page is at index 2
-
+        self.stacked_widget.setCurrentIndex(2) 
 
     def create_title_bar(self):
         title_bar_frame = QFrame()
