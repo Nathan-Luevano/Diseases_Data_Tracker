@@ -20,35 +20,63 @@ class RoundedImageLabel(QLabel):
         painter.setClipPath(path)
         super().paintEvent(event)
 
+
+def create_stat_card(icon_path: str, number_text: str, label_text: str) -> QFrame:
+    card_frame = QFrame()
+    card_frame.setStyleSheet("background-color: #2F3044; border-radius: 20px;")
+
+    card_layout = QVBoxLayout(card_frame)
+    card_layout.setContentsMargins(10, 10, 10, 10)
+    card_layout.setSpacing(5)
+
+    icon_label = QLabel()
+    icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    pixmap = QPixmap(icon_path)
+    if not pixmap.isNull():
+        scaled_icon = pixmap.scaled(
+            64, 64,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation
+        )
+        icon_label.setPixmap(scaled_icon)
+    else:
+        icon_label.setText("(No Icon)")
+        icon_label.setStyleSheet("color: #FFFFFF;")
+    card_layout.addWidget(icon_label)
+
+    number_label = QLabel(number_text)
+    number_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    number_label.setStyleSheet("color: #FFFFFF; font-size: 24px;")
+    card_layout.addWidget(number_label)
+
+    descriptor_label = QLabel(label_text)
+    descriptor_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    descriptor_label.setStyleSheet("color: #FFFFFF; font-size: 14px;")
+    card_layout.addWidget(descriptor_label)
+
+    return card_frame
+
+
 def create_dashboard_page(go_to_heatmap, go_to_stats):
     page = QFrame()
     main_layout = QVBoxLayout(page)
     main_layout.setContentsMargins(20, 20, 20, 20)
     main_layout.setSpacing(20)
 
-    additional_button = QPushButton()
-    additional_button.setFixedHeight(200)
-    additional_button.setStyleSheet("""
-        QPushButton {
-            background-color: #2F3044;
-            border-radius: 20px;
-        }
-        QPushButton:hover {
-            background-color: #44455A;
-        }
-    """)
-    additional_button.clicked.connect(go_to_stats)  
+    additional_frame = QFrame()
+    additional_frame.setFixedHeight(200)
+    additional_frame.setStyleSheet("background-color: transparent;")
 
-    additional_layout = QVBoxLayout(additional_button)
-    additional_layout.setContentsMargins(0, 0, 0, 0)
-    additional_layout.setSpacing(0)
+    
+    stat_layout = QHBoxLayout(additional_frame)
+    stat_layout.setSpacing(20)
+    stat_layout.setContentsMargins(0, 0, 0, 0)
+    stat_layout.addWidget(create_stat_card("./frontend/icons/virus-bold.svg", "100.000", "Active Cases"))
+    stat_layout.addWidget(create_stat_card("./frontend/icons/face-mask-bold.svg", "100.000", "Recovered"))
+    stat_layout.addWidget(create_stat_card("./frontend/icons/skull-bold.svg", "100.000", "Deaths"))
+    stat_layout.addWidget(create_stat_card("./frontend/icons/users-four.svg", "100.000", "Population"))
 
-    additional_label = QLabel("Additional Data Placeholder")
-    additional_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-    additional_label.setStyleSheet("color: #FFFFFF; font-size: 16px;")
-    additional_layout.addWidget(additional_label)
-
-    main_layout.addWidget(additional_button)
+    main_layout.addWidget(additional_frame)
 
     content_layout = QHBoxLayout()
     content_layout.setSpacing(20)
@@ -64,7 +92,7 @@ def create_dashboard_page(go_to_heatmap, go_to_stats):
             background-color: #44455A;
         }
     """)
-    map_button.clicked.connect(go_to_heatmap)  
+    map_button.clicked.connect(go_to_heatmap)
 
     map_layout = QVBoxLayout(map_button)
     map_layout.setContentsMargins(0, 0, 0, 0)
@@ -82,7 +110,7 @@ def create_dashboard_page(go_to_heatmap, go_to_stats):
         map_label.setPixmap(scaled_pixmap)
     else:
         map_label.setText("Map Preview Placeholder")
-        map_label.setStyleSheet("color: #FFFFFF;")
+        map_label.setStyleSheet("color: #FFFFFF;")  
 
     map_layout.addWidget(map_label)
     content_layout.addWidget(map_button)
@@ -110,6 +138,7 @@ def create_dashboard_page(go_to_heatmap, go_to_stats):
     data_layout.addWidget(data_label)
 
     content_layout.addWidget(data_button)
+
     main_layout.addLayout(content_layout)
 
     return page
