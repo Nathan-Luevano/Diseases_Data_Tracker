@@ -137,10 +137,11 @@ def compute_content_hash(content: str) -> str:
 
 def add_cases_to_db(db_name="health_data.db"):
     """
-    Fetches the US states table from Worldometers,
-    parses out each state name and its current new cases,
+    Fetches the US states table from Worldometers, parses out each state name and its current new cases,
     then updates the existing COVID_Cases rows.
-    Returns a list of (state, cases) that were processed.
+    In addition, it scrapes the global Deaths and Recovered numbers from the page and saves them
+    as separate metrics under state "United States".
+    Returns a list of (state, cases) that were processed (for the state-level cases).
     """
     worldometers_url = "https://www.worldometers.info/coronavirus/country/us/"
 
@@ -153,57 +154,122 @@ def add_cases_to_db(db_name="health_data.db"):
         print("No Worldometers table found.")
         return []
 
-    # Compute a hash of the table HTML content.
     current_hash = compute_content_hash(table.html)
     cached_hash = get_cached_etag(worldometers_url)
     if current_hash and cached_hash == current_hash:
-        print("No change in Worldometers data detected (hash unchanged).")
-        return []
+        print("No change in Worldometers state-level data detected (hash unchanged).")
+        state_processed = []
+    else:
+        soup = BeautifulSoup(table.html, "html.parser")
+        rows = soup.select("tbody tr")
 
-    from bs4 import BeautifulSoup
-    soup = BeautifulSoup(table.html, "html.parser")
-    rows = soup.select("tbody tr")
+        conn = sqlite3.connect(db_name)
+        cursor = conn.cursor()
+        state_processed = []
+        
+        for row in rows:
+            cells = row.find_all("td")
+            if len(cells) < 7:
+                continue
 
-    conn = sqlite3.connect(db_name)
-    cursor = conn.cursor()
-    processed = []
-    
-    for row in rows:
-        cells = row.find_all("td")
-        if len(cells) < 7:
-            continue
+            a_tag = row.find("a", class_="mt_a")
+            if a_tag and a_tag.get_text(strip=True):
+                state = a_tag.get_text(strip=True)
+            else:
+                state = cells[1].get_text(strip=True)
 
-        a_tag = row.find("a", class_="mt_a")
-        if a_tag and a_tag.get_text(strip=True):
-            state = a_tag.get_text(strip=True)
-        else:
-            state = cells[1].get_text(strip=True)
+            raw = cells[6].get_text(strip=True).replace(",", "")
+            try:
+                cases = int(raw)
+            except ValueError:
+                continue
 
-        raw = cells[6].get_text(strip=True).replace(",", "")
-        try:
-            cases = int(raw)
-        except ValueError:
-            continue
-
-        cursor.execute("""
-            UPDATE state_metrics
-               SET metric_value = metric_value + ?
-             WHERE state = ? AND metric_type = 'COVID_Cases'
-        """, (cases, state))
-        if cursor.rowcount == 0:
             cursor.execute("""
-                INSERT INTO state_metrics
-                    (state, metric_type, metric_value, year)
-                VALUES (?, 'COVID_Cases', ?, 'Current')
-            """, (state, cases))
-        processed.append((state, cases))
+                UPDATE state_metrics
+                   SET metric_value = metric_value + ?
+                 WHERE state = ? AND metric_type = 'COVID_Cases'
+            """, (cases, state))
+            if cursor.rowcount == 0:
+                cursor.execute("""
+                    INSERT INTO state_metrics
+                        (state, metric_type, metric_value, year)
+                    VALUES (?, 'COVID_Cases', ?, 'Current')
+                """, (state, cases))
+            state_processed.append((state, cases))
 
-    conn.commit()
-    conn.close()
+        conn.commit()
+        conn.close()
+        update_cached_etag(worldometers_url, current_hash)
 
-    update_cached_etag(worldometers_url, current_hash)
+    global_key = worldometers_url + "_global"
+    try:
+        response = requests.get(worldometers_url)
+        response.raise_for_status()
+    except Exception as e:
+        print("Error fetching global Worldometers stats:", e)
+        return state_processed
+
+    soup_global = BeautifulSoup(response.text, "html.parser")
+    main_counters = soup_global.find_all("div", id="maincounter-wrap")
+    global_deaths = None
+    global_recovered = None
+    for counter in main_counters:
+        h1 = counter.find("h1")
+        if not h1:
+            continue
+        heading = h1.get_text(strip=True)
+        span = counter.find("span")
+        if not span:
+            continue
+        value_text = span.get_text(strip=True)
+        if "Deaths" in heading:
+            global_deaths = value_text
+        elif "Recovered" in heading:
+            global_recovered = value_text
+
+    if global_deaths is not None or global_recovered is not None:
+        global_stats_str = f"{global_deaths}_{global_recovered}"
+        global_hash = compute_content_hash(global_stats_str)
+        cached_global_hash = get_cached_etag(global_key)
+        if not (global_hash and cached_global_hash == global_hash):
+            try:
+                conn = sqlite3.connect(db_name)
+                cursor = conn.cursor()
+                if global_deaths is not None:
+                    deaths_val = int(global_deaths.replace(",", ""))
+                    cursor.execute("""
+                        UPDATE state_metrics
+                           SET metric_value = ?
+                         WHERE state = 'United States' AND metric_type = 'COVID_Deaths'
+                    """, (deaths_val,))
+                    if cursor.rowcount == 0:
+                        cursor.execute("""
+                            INSERT INTO state_metrics
+                                (state, metric_type, metric_value, year)
+                            VALUES ('United States', 'COVID_Deaths', ?, 'Current')
+                        """, (deaths_val,))
+                if global_recovered is not None:
+                    recovered_val = int(global_recovered.replace(",", ""))
+                    cursor.execute("""
+                        UPDATE state_metrics
+                           SET metric_value = ?
+                         WHERE state = 'United States' AND metric_type = 'COVID_Recovered'
+                    """, (recovered_val,))
+                    if cursor.rowcount == 0:
+                        cursor.execute("""
+                            INSERT INTO state_metrics
+                                (state, metric_type, metric_value, year)
+                            VALUES ('United States', 'COVID_Recovered', ?, 'Current')
+                        """, (recovered_val,))
+                conn.commit()
+                conn.close()
+                update_cached_etag(global_key, global_hash)
+            except Exception as e:
+                print("Error updating global stats in DB:", e)
+    else:
+        print("Failed to scrape global Deaths or Recovered numbers.")
     
-    return processed
+    return state_processed
 
 
 

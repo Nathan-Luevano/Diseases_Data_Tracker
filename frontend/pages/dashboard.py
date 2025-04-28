@@ -4,6 +4,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap
 import sqlite3
+import math
 
 class RoundedImageLabel(QLabel):
     def __init__(self, corner_radius=20, parent=None):
@@ -83,15 +84,20 @@ def create_dashboard_page(go_to_heatmap, go_to_stats):
     stat_layout.setSpacing(20)
     stat_layout.setContentsMargins(0, 0, 0, 0)
 
-    active_cases = get_metric_average("COVID_Active")
+    positivity = get_metric_average("COVID_Positivity")
+    active_cases = (positivity / 100) * 340000000
+
+
     recovered = get_metric_average("COVID_Recovered")
-    deaths = get_metric_average("COVID_Cases")
-    population = get_metric_average("US_Population")
+    deaths = get_metric_average("COVID_Deaths")
+
+    active_cases_formatted = f"{math.ceil(active_cases):,}"
+    deaths_formatted = f"{math.ceil(deaths):,}"
+    recovered_formatted = f"{math.ceil(recovered):,}"
     
-    stat_layout.addWidget(create_stat_card("./frontend/icons/virus-bold.svg", f"{active_cases:.3f}", "Active Cases"))
-    stat_layout.addWidget(create_stat_card("./frontend/icons/face-mask-bold.svg", f"{recovered:.3f}", "Recovered"))
-    stat_layout.addWidget(create_stat_card("./frontend/icons/skull-bold.svg", f"{deaths:.3f}", "Deaths (Per million)"))
-    stat_layout.addWidget(create_stat_card("./frontend/icons/users-four.svg", f"{population:.3f}", "Population"))
+    stat_layout.addWidget(create_stat_card("./frontend/icons/virus-bold.svg", active_cases_formatted, "Active Cases"))
+    stat_layout.addWidget(create_stat_card("./frontend/icons/face-mask-bold.svg", recovered_formatted, "Recovered"))
+    stat_layout.addWidget(create_stat_card("./frontend/icons/skull-bold.svg", deaths_formatted, "Deaths"))
 
     main_layout.addWidget(additional_frame)
 
