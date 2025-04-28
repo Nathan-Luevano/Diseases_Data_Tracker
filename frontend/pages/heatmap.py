@@ -117,19 +117,20 @@ def create_heatmap_page(toggle_inpage_sidebar_callback):
     layout.setStretch(0, 1)
     layout.setStretch(1, 0)
     
+    def update_year_options():
+        selected_disease = disease_combo.currentText()
+        year_combo.blockSignals(True)
+        year_combo.clear()
+        if selected_disease == "COVID-19":
+            year_combo.addItem("Past-4-Weeks")
+        elif selected_disease == "RSV":
+            year_combo.addItems(["2023", "2022", "2021", "2020", "2019", "2018", "2017"])
+        year_combo.blockSignals(False)
+        update_heatmap()  
+
     def update_heatmap():
         selected_disease = disease_combo.currentText()
-        if selected_disease == "COVID-19":
-            year_combo.blockSignals(True)
-            year_combo.clear()
-            year_combo.addItems(["Past-4-Weeks"])
-            year_combo.blockSignals(False)
-        elif selected_disease == "RSV":
-            year_combo.blockSignals(True)
-            year_combo.clear()
-            year_combo.addItems(["2023", "2022", "2021", "2020", "2019", "2018", "2017"])
-            year_combo.blockSignals(False)
-        selected_year = year_combo.currentText()
+        selected_year = year_combo.currentText()  
         safe_disease = selected_disease.replace(" ", "_")
         safe_year = selected_year.replace(" ", "")
         base_dir = Path(__file__).resolve().parent.parent.parent
@@ -138,8 +139,10 @@ def create_heatmap_page(toggle_inpage_sidebar_callback):
         heatmap_display.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
         file_url = QUrl.fromLocalFile(str(filepath))
         heatmap_display.setUrl(file_url)
-    
-    disease_combo.currentIndexChanged.connect(update_heatmap)
+
+    disease_combo.currentIndexChanged.connect(update_year_options)
     year_combo.currentIndexChanged.connect(update_heatmap)
-    
+
+    update_year_options()
+
     return page, sidebar

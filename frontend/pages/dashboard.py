@@ -5,6 +5,8 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap
 import sqlite3
 import math
+from PyQt6.QtGui import QPainter, QPainterPath
+from PyQt6.QtCore import QRectF
 
 class RoundedImageLabel(QLabel):
     def __init__(self, corner_radius=20, parent=None):
@@ -12,8 +14,6 @@ class RoundedImageLabel(QLabel):
         self._corner_radius = corner_radius
 
     def paintEvent(self, event):
-        from PyQt6.QtGui import QPainter, QPainterPath
-        from PyQt6.QtCore import QRectF
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         path = QPainterPath()
@@ -108,11 +108,11 @@ def create_dashboard_page(go_to_heatmap, go_to_stats):
     map_button.setFixedSize(600, 400)
     map_button.setStyleSheet("""
         QPushButton {
-            background-color: #2F3044;
+            background-color: #1E1E2F;
             border-radius: 20px;
         }
         QPushButton:hover {
-            background-color: #44455A;
+            background-color: #1E1E2F;
         }
     """)
     map_button.clicked.connect(go_to_heatmap)
