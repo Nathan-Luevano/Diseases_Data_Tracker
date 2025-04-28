@@ -5,6 +5,8 @@ import requests
 from requests_html import HTMLSession
 from Backend.generate_heatmap import start_gen
 from bs4 import BeautifulSoup
+import hashlib
+
 
 def create_cache_table(db_name="health_data.db"):
     conn = sqlite3.connect(db_name)
@@ -35,7 +37,6 @@ def update_cached_etag(url, etag, db_name="health_data.db"):
     conn.commit()
     conn.close()
 
-# --- Data Extraction Functions ---
 
 def extract_covid_data_from_html(html_content):
     """
@@ -130,6 +131,82 @@ def scrape_cdc_covid_data():
         covid_data = extract_covid_data_from_html(table_html)
         return covid_data
 
+def compute_content_hash(content: str) -> str:
+    """Compute an MD5 hash for the given content."""
+    return hashlib.md5(content.encode('utf-8')).hexdigest()
+
+def add_cases_to_db(db_name="health_data.db"):
+    """
+    Fetches the US states table from Worldometers,
+    parses out each state name and its current new cases,
+    then updates the existing COVID_Cases rows.
+    Returns a list of (state, cases) that were processed.
+    """
+    worldometers_url = "https://www.worldometers.info/coronavirus/country/us/"
+
+    session = HTMLSession()
+    r = session.get(worldometers_url)
+    r.html.render(sleep=3, timeout=20)
+
+    table = r.html.find("table#usa_table_countries_today", first=True)
+    if not table:
+        print("No Worldometers table found.")
+        return []
+
+    # Compute a hash of the table HTML content.
+    current_hash = compute_content_hash(table.html)
+    cached_hash = get_cached_etag(worldometers_url)
+    if current_hash and cached_hash == current_hash:
+        print("No change in Worldometers data detected (hash unchanged).")
+        return []
+
+    from bs4 import BeautifulSoup
+    soup = BeautifulSoup(table.html, "html.parser")
+    rows = soup.select("tbody tr")
+
+    conn = sqlite3.connect(db_name)
+    cursor = conn.cursor()
+    processed = []
+    
+    for row in rows:
+        cells = row.find_all("td")
+        if len(cells) < 7:
+            continue
+
+        a_tag = row.find("a", class_="mt_a")
+        if a_tag and a_tag.get_text(strip=True):
+            state = a_tag.get_text(strip=True)
+        else:
+            state = cells[1].get_text(strip=True)
+
+        raw = cells[6].get_text(strip=True).replace(",", "")
+        try:
+            cases = int(raw)
+        except ValueError:
+            continue
+
+        cursor.execute("""
+            UPDATE state_metrics
+               SET metric_value = metric_value + ?
+             WHERE state = ? AND metric_type = 'COVID_Cases'
+        """, (cases, state))
+        if cursor.rowcount == 0:
+            cursor.execute("""
+                INSERT INTO state_metrics
+                    (state, metric_type, metric_value, year)
+                VALUES (?, 'COVID_Cases', ?, 'Current')
+            """, (state, cases))
+        processed.append((state, cases))
+
+    conn.commit()
+    conn.close()
+
+    update_cached_etag(worldometers_url, current_hash)
+    
+    return processed
+
+
+
 def download_rsv_data():
     csv_url = "https://data.cdc.gov/api/views/29hc-w46k/rows.csv?accessType=DOWNLOAD"
     local_filename = "rsv_data.csv"
@@ -181,7 +258,7 @@ def create_tables(db_name="health_data.db"):
         CREATE TABLE IF NOT EXISTS state_metrics (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             state TEXT,
-            metric_type TEXT,   -- e.g., "COVID_Positivity" or "RSV_Rate"
+            metric_type TEXT,   -- e.g., "COVID_Positivity", "RSV_Rate", "COVID_Cases"
             metric_value REAL,
             year TEXT
         )
@@ -243,6 +320,12 @@ def back_main():
     else:
         insert_state_metrics(covid_data, metric_type="COVID_Positivity")
     
+    updates = add_cases_to_db()
+    if not updates:
+        print("No new Worldometers COVID data to update.")
+    else:
+        print(f"Updated COVID_Cases for {len(updates)} locations.")
+
     rsv_csv = download_rsv_data()
     if rsv_csv is None:
         print("No new RSV data to update (ETag unchanged).")

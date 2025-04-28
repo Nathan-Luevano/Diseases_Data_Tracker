@@ -3,6 +3,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap
+import sqlite3
 
 class RoundedImageLabel(QLabel):
     def __init__(self, corner_radius=20, parent=None):
@@ -56,6 +57,17 @@ def create_stat_card(icon_path: str, number_text: str, label_text: str) -> QFram
 
     return card_frame
 
+def get_metric_average(metric_type: str, db_name="health_data.db") -> float:
+    """Return the average metric_value for the given metric_type."""
+    conn = sqlite3.connect(db_name)
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT AVG(metric_value) FROM state_metrics WHERE metric_type = ?",
+        (metric_type,)
+    )
+    result = cursor.fetchone()[0]
+    conn.close()
+    return result if result is not None else 0.0
 
 def create_dashboard_page(go_to_heatmap, go_to_stats):
     page = QFrame()
@@ -67,14 +79,19 @@ def create_dashboard_page(go_to_heatmap, go_to_stats):
     additional_frame.setFixedHeight(200)
     additional_frame.setStyleSheet("background-color: transparent;")
 
-    
     stat_layout = QHBoxLayout(additional_frame)
     stat_layout.setSpacing(20)
     stat_layout.setContentsMargins(0, 0, 0, 0)
-    stat_layout.addWidget(create_stat_card("./frontend/icons/virus-bold.svg", "100.000", "Active Cases"))
-    stat_layout.addWidget(create_stat_card("./frontend/icons/face-mask-bold.svg", "100.000", "Recovered"))
-    stat_layout.addWidget(create_stat_card("./frontend/icons/skull-bold.svg", "100.000", "Deaths"))
-    stat_layout.addWidget(create_stat_card("./frontend/icons/users-four.svg", "100.000", "Population"))
+
+    active_cases = get_metric_average("COVID_Active")
+    recovered = get_metric_average("COVID_Recovered")
+    deaths = get_metric_average("COVID_Cases")
+    population = get_metric_average("US_Population")
+    
+    stat_layout.addWidget(create_stat_card("./frontend/icons/virus-bold.svg", f"{active_cases:.3f}", "Active Cases"))
+    stat_layout.addWidget(create_stat_card("./frontend/icons/face-mask-bold.svg", f"{recovered:.3f}", "Recovered"))
+    stat_layout.addWidget(create_stat_card("./frontend/icons/skull-bold.svg", f"{deaths:.3f}", "Deaths (Per million)"))
+    stat_layout.addWidget(create_stat_card("./frontend/icons/users-four.svg", f"{population:.3f}", "Population"))
 
     main_layout.addWidget(additional_frame)
 
