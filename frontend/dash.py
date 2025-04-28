@@ -167,13 +167,6 @@ class ModernDashboard(QMainWindow):
         btn_stats.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(2))
         nav_layout.addWidget(btn_stats, 0, Qt.AlignmentFlag.AlignHCenter)
 
-        btn_settings = QPushButton()
-        btn_settings.setIcon(QIcon("./frontend/icons/faders-fill.svg"))
-        btn_settings.setObjectName("NavButton")
-        btn_settings.setFixedSize(40, 40)
-        btn_settings.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(3))
-        nav_layout.addWidget(btn_settings, 0, Qt.AlignmentFlag.AlignHCenter)
-
         nav_layout.addStretch()
         return nav_frame
 
