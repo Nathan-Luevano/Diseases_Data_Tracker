@@ -23,6 +23,8 @@ Diseases Data Tracker is dedicated to aggregating and visualizing the latest dat
 <!-- Add your application screenshots below -->
 ![Dashboard Screenshot](/frontend/pages/dash_samp.png)
 ![Heatmap Screenshot](/frontend/pages/heatmap_samp.png)
+![Stats Screenshot](/frontend/pages/stats_samp.png)
+![AI Screenshot](/frontend/pages/AI_samp.png)
 <!-- Add more images as needed -->
 
 ---
@@ -50,7 +52,7 @@ Diseases Data Tracker is dedicated to aggregating and visualizing the latest dat
 Ensure you have Python and pip installed. Then, install the required packages using:
 
 ```bash
-pip install requests requests-html pyqt6 folium PyQt6-WebEngine lxml_html_clean matplotlib plotly pandas selenium markdown
+pip install requests requests-html pyqt6 folium PyQt6-WebEngine lxml_html_clean matplotlib plotly pandas selenium markdown ollama
 ```
 
 ### Linux Specific Requirements
@@ -76,12 +78,6 @@ python main.py
 - **Frontend:** Houses the PyQt application components such as the dashboard and data visualization pages ([frontend/main.py](frontend/main.py) and [frontend/dash.py](frontend/dash.py)).
 - **Database:** The application uses an SQLite database (`health_data.db`) to store and update health data.
 - **Styles:** Custom stylesheets are stored (e.g., `styles.qss`) to maintain a consistent look and feel of the GUI.
-
----
-
-## Contributing
-
-Feel free to fork the repository and submit pull requests. For major changes, please open an issue first to discuss what you would like to change.
 
 ---
 
