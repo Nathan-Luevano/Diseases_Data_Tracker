@@ -150,11 +150,13 @@ def add_cases_to_db(db_name="health_data.db"):
 
     table = r.html.find("table#usa_table_countries_today", first=True)
     if not table:
+        print("No Worldometers table found.")
         return []
 
     current_hash = compute_content_hash(table.html)
     cached_hash = get_cached_etag(worldometers_url)
-    if current_hash and cached_hash == current_hash:        
+    if current_hash and cached_hash == current_hash:
+        print("No change in Worldometers state-level data detected (hash unchanged).")
         state_processed = []
     else:
         soup = BeautifulSoup(table.html, "html.parser")
@@ -282,10 +284,10 @@ def download_rsv_data():
         if current_etag and cached_etag == current_etag:
             return None
         else:
-            pass
+            print("ETag changed or not available for RSV data. Proceeding with download.")
     except Exception as e:
-        pass
-
+        print("Error checking ETag for RSV data:", e)
+    
     response = requests.get(csv_url)
     if response.status_code == 200:
         with open(local_filename, "wb") as f:
@@ -308,6 +310,7 @@ def parse_rsv_data(csv_filename):
             try:
                 rate_val = float(rate_str)
             except ValueError:
+                print(f"Row {i}: Could not convert rate '{rate_str}' to float. Defaulting to 0.0")
                 rate_val = 0.0
             results.append((state, rate_val, year_str))
     return results
@@ -371,31 +374,26 @@ def cleanup():
     try:
         os.unlink(file_path)
     except FileNotFoundError:
-        # print(f"Error: File '{file_path}' not found.")
-        pass
+        print(f"Error: File '{file_path}' not found.")
 
 def back_main():
     create_tables()
     
     covid_data = scrape_cdc_covid_data()
     if not covid_data:
-        # print("No new CDC COVID data to update (ETag unchanged).")
-        pass
+        print("No new CDC COVID data to update (ETag unchanged).")
     else:
         insert_state_metrics(covid_data, metric_type="COVID_Positivity")
     
     updates = add_cases_to_db()
     if not updates:
-        # print("No new Worldometers COVID data to update.")
-        pass
+        print("No new Worldometers COVID data to update.")
     else:
-        # print(f"Updated COVID_Cases for {len(updates)} locations.")
-        pass
+        print(f"Updated COVID_Cases for {len(updates)} locations.")
 
     rsv_csv = download_rsv_data()
     if rsv_csv is None:
-        # print("No new RSV data to update (ETag unchanged).")
-        pass
+        print("No new RSV data to update (ETag unchanged).")
     else:
         rsv_data = parse_rsv_data(rsv_csv)
         insert_state_metrics(rsv_data, metric_type="RSV_Rate")
@@ -411,7 +409,7 @@ def back_main():
         "Delaware": (39.7447, -75.5484),         
         "District of Columbia": (38.9072, -77.0369),   
         "Florida": (30.3322, -81.6557),          
-        "Georgia": (33.7490, -84.3880),          
+        "Georgia": (33.7490, -84.3880),         
         "Hawaii": (21.3069, -157.8583),          
         "Idaho": (43.6150, -116.2023),           
         "Illinois": (41.8781, -87.6298),         
@@ -419,14 +417,14 @@ def back_main():
         "Iowa": (41.5868, -93.6250),              
         "Kansas": (37.6872, -97.3301),           
         "Kentucky": (38.2527, -85.7585),         
-        "Louisiana": (29.9511, -90.0715),         
+        "Louisiana": (29.9511, -90.0715),        
         "Maine": (43.6591, -70.2568),            
         "Maryland": (39.2904, -76.6122),         
         "Massachusetts": (42.3601, -71.0589),    
         "Michigan": (42.3314, -83.0458),         
         "Minnesota": (44.9778, -93.2650),        
         "Mississippi": (32.2988, -90.1848),      
-        "Missouri": (39.0997, -94.5786),         
+        "Missouri": (39.0997, -94.5786),        
         "Montana": (45.7833, -108.5007),         
         "Nebraska": (41.2565, -95.9345),         
         "Nevada": (36.1699, -115.1398),           
