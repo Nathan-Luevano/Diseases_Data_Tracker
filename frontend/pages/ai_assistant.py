@@ -19,7 +19,7 @@ class AIAssistantWorker(QThread):
     def run(self):
         try:
             stream = ollama.chat(
-                model='gemma3:1b', 
+                model='gemma3:1b-it-q4_K_M', 
                 messages=[
                     {
                         'role': 'system',
@@ -175,7 +175,7 @@ def create_ai_assistant_page():
     chat_scroll.setWidget(chat_container)
     main_layout.addWidget(chat_scroll, 1)
     
-    greeting_message = MessageBubble("**Hello!** I'm your AI health assistant powered by gemma3:1b. *How can I help you with health or medical information today?*", is_user=False)
+    greeting_message = MessageBubble("**Hello!**. *How can I help you with health or medical information today?*", is_user=False)
     chat_layout.addWidget(greeting_message)
     
     input_layout = QHBoxLayout()

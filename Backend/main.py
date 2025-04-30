@@ -6,6 +6,69 @@ from requests_html import HTMLSession
 from Backend.generate_heatmap import start_gen
 from bs4 import BeautifulSoup
 import hashlib
+import os
+import subprocess
+
+
+def check_and_download_model():
+    """
+    Check if the Gemma3:1b-it-q4_K_M model is downloaded, and if not, download it.
+    """
+    model_name = "gemma3:1b-it-q4_K_M"
+    print(f"Checking if {model_name} model is downloaded...")
+    
+    # Common locations for Ollama models
+    model_locations = []
+    
+    if sys.platform.startswith("win"):
+        # Windows paths
+        appdata = os.environ.get("LOCALAPPDATA", "")
+        if appdata:
+            model_locations.append(os.path.join(appdata, "ollama", "models"))
+    else:
+        # Linux/Mac paths
+        model_locations.extend([
+            os.path.expanduser("~/.ollama/models"),
+            "/usr/local/share/ollama/models",
+            "/var/lib/ollama/models"
+        ])
+    
+    # Check if model exists in any location
+    model_exists = False
+    for location in model_locations:
+        if os.path.exists(location):
+            potential_models = os.listdir(location)
+            if any(model_name.lower() in model.lower() for model in potential_models):
+                model_exists = True
+                print(f"Model {model_name} found in {location}")
+                break
+    
+    # Alternative method: use ollama list command
+    try:
+        result = subprocess.run(["ollama", "list"], capture_output=True, text=True)
+        if result.returncode == 0 and model_name in result.stdout:
+            model_exists = True
+            print(f"Model {model_name} found via ollama list command")
+    except (FileNotFoundError, subprocess.SubprocessError):
+        print("Could not check models using ollama command. Continuing with file-based detection.")
+    
+    # Download if not found
+    if not model_exists:
+        print(f"Model {model_name} not found. Downloading...")
+        try:
+            download_process = subprocess.run(["ollama", "pull", model_name], 
+                                             check=True, 
+                                             capture_output=True, 
+                                             text=True)
+            if download_process.returncode == 0:
+                print(f"Successfully downloaded {model_name}")
+            else:
+                print(f"Error downloading model: {download_process.stderr}")
+        except Exception as e:
+            print(f"Failed to download model: {e}")
+            print("The program will continue but may not function correctly without the required model.")
+    else:
+        print(f"Model {model_name} is already downloaded.")
 
 
 def create_cache_table(db_name="health_data.db"):
@@ -377,6 +440,9 @@ def cleanup():
         print(f"Error: File '{file_path}' not found.")
 
 def back_main():
+    # Check and download the Gemma model before starting
+    check_and_download_model()
+    
     create_tables()
     
     covid_data = scrape_cdc_covid_data()
