@@ -17,23 +17,19 @@ def check_and_download_model():
     model_name = "gemma3:1b-it-q4_K_M"
     print(f"Checking if {model_name} model is downloaded...")
     
-    # Common locations for Ollama models
     model_locations = []
     
     if sys.platform.startswith("win"):
-        # Windows paths
         appdata = os.environ.get("LOCALAPPDATA", "")
         if appdata:
             model_locations.append(os.path.join(appdata, "ollama", "models"))
     else:
-        # Linux/Mac paths
         model_locations.extend([
             os.path.expanduser("~/.ollama/models"),
             "/usr/local/share/ollama/models",
             "/var/lib/ollama/models"
         ])
     
-    # Check if model exists in any location
     model_exists = False
     for location in model_locations:
         if os.path.exists(location):
@@ -43,7 +39,6 @@ def check_and_download_model():
                 print(f"Model {model_name} found in {location}")
                 break
     
-    # Alternative method: use ollama list command
     try:
         result = subprocess.run(["ollama", "list"], capture_output=True, text=True)
         if result.returncode == 0 and model_name in result.stdout:
@@ -52,7 +47,6 @@ def check_and_download_model():
     except (FileNotFoundError, subprocess.SubprocessError):
         print("Could not check models using ollama command. Continuing with file-based detection.")
     
-    # Download if not found
     if not model_exists:
         print(f"Model {model_name} not found. Downloading...")
         try:
@@ -440,7 +434,6 @@ def cleanup():
         print(f"Error: File '{file_path}' not found.")
 
 def back_main():
-    # Check and download the Gemma model before starting
     check_and_download_model()
     
     create_tables()

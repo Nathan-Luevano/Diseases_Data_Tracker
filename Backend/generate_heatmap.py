@@ -97,7 +97,6 @@ def generate_heatmap_html(metric_type, year_filter, output_file="heatmap.html", 
         ).add_to(m)
 
         m.save(output_file)
-        # print(f"Heatmap generated: {output_file}")
 
     except Exception as e:
         print(f"Error generating heatmap for '{metric_type}', '{year_filter}': {e}")
@@ -127,5 +126,4 @@ def start_gen():
                 safe_year = "Past-4-Weeks"
             output_file = f"heatmap_{safe_disease}_{safe_year}.html"
 
-            # print(f"Generating heatmap for {disease} ({metric_type}), filter '{year_val}'")
             generate_heatmap_html(metric_type, year_val, output_file, exact_match=exact)
