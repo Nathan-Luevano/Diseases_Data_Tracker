@@ -9,6 +9,7 @@ from PyQt6.QtWidgets import (
 from frontend.pages.dashboard import create_dashboard_page
 from frontend.pages.heatmap import create_heatmap_page
 from frontend.pages.stats import create_stats_page
+from frontend.pages.ai_assistant import create_ai_assistant_page
 
 from frontend.widgets import ResizeHandle
 
@@ -69,11 +70,17 @@ class ModernDashboard(QMainWindow):
 
         self.sidebar_animation = None
 
+        self.ai_assistant_page = create_ai_assistant_page()
+        self.stacked_widget.addWidget(self.ai_assistant_page)
+
     def navigate_to_heatmap(self):
         self.stacked_widget.setCurrentIndex(1)  
 
     def navigate_to_stats(self):
         self.stacked_widget.setCurrentIndex(2) 
+    
+    def navigate_to_ai_assistant(self):
+        self.stacked_widget.setCurrentIndex(3)
 
     def create_title_bar(self):
         title_bar_frame = QFrame()
@@ -166,6 +173,13 @@ class ModernDashboard(QMainWindow):
         btn_stats.setFixedSize(40, 40)
         btn_stats.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(2))
         nav_layout.addWidget(btn_stats, 0, Qt.AlignmentFlag.AlignHCenter)
+
+        btn_ai_assistant = QPushButton()
+        btn_ai_assistant.setIcon(QIcon("./frontend/icons/brain.svg"))
+        btn_ai_assistant.setObjectName("NavButton")
+        btn_ai_assistant.setFixedSize(40, 40)
+        btn_ai_assistant.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(3))
+        nav_layout.addWidget(btn_ai_assistant, 0, Qt.AlignmentFlag.AlignHCenter)
 
         nav_layout.addStretch()
         return nav_frame

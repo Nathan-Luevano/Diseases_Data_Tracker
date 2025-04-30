@@ -65,7 +65,6 @@ def extract_covid_data_from_html(html_content):
 def scrape_cdc_covid_data():
     covid_url = "https://covid.cdc.gov/covid-data-tracker/#maps_positivity-4-week"
 
-    
     current_etag = None
     try:
         head_response = requests.head(covid_url)
@@ -400,58 +399,58 @@ def back_main():
         insert_state_metrics(rsv_data, metric_type="RSV_Rate")
     
     STATE_CENTROIDS = {
-        "Alabama": (33.5207, -86.8025),        # Birmingham
-        "Alaska": (61.2181, -149.9003),         # Anchorage
-        "Arizona": (33.4484, -112.0740),        # Phoenix
-        "Arkansas": (34.7465, -92.2896),        # Little Rock
-        "California": (34.0522, -118.2437),     # Los Angeles
-        "Colorado": (39.7392, -104.9903),       # Denver
-        "Connecticut": (41.1865, -73.1950),     # Bridgeport
-        "Delaware": (39.7447, -75.5484),        # Wilmington
-        "District of Columbia": (38.9072, -77.0369),  # Washington, D.C.
-        "Florida": (30.3322, -81.6557),         # Jacksonville
-        "Georgia": (33.7490, -84.3880),         # Atlanta
-        "Hawaii": (21.3069, -157.8583),         # Honolulu
-        "Idaho": (43.6150, -116.2023),          # Boise
-        "Illinois": (41.8781, -87.6298),        # Chicago
-        "Indiana": (39.7684, -86.1581),         # Indianapolis
-        "Iowa": (41.5868, -93.6250),            # Des Moines
-        "Kansas": (37.6872, -97.3301),          # Wichita
-        "Kentucky": (38.2527, -85.7585),        # Louisville
-        "Louisiana": (29.9511, -90.0715),       # New Orleans
-        "Maine": (43.6591, -70.2568),           # Portland, ME
-        "Maryland": (39.2904, -76.6122),        # Baltimore
-        "Massachusetts": (42.3601, -71.0589),   # Boston
-        "Michigan": (42.3314, -83.0458),        # Detroit
-        "Minnesota": (44.9778, -93.2650),       # Minneapolis
-        "Mississippi": (32.2988, -90.1848),     # Jackson
-        "Missouri": (39.0997, -94.5786),        # Kansas City, MO
-        "Montana": (45.7833, -108.5007),        # Billings
-        "Nebraska": (41.2565, -95.9345),        # Omaha
-        "Nevada": (36.1699, -115.1398),         # Las Vegas
-        "New Hampshire": (42.9956, -71.4548),   # Manchester
-        "New Jersey": (40.7357, -74.1724),      # Newark
-        "New Mexico": (35.0844, -106.6504),     # Albuquerque
-        "New York": (40.7128, -74.0060),        # New York City
-        "North Carolina": (35.2271, -80.8431),  # Charlotte
-        "North Dakota": (46.8772, -96.7898),    # Fargo
-        "Ohio": (39.9612, -82.9988),            # Columbus
-        "Oklahoma": (35.4676, -97.5164),        # Oklahoma City
-        "Oregon": (45.5051, -122.6750),         # Portland, OR
-        "Pennsylvania": (39.9526, -75.1652),    # Philadelphia
-        "Rhode Island": (41.8240, -71.4128),    # Providence
-        "South Carolina": (32.7765, -79.9311),  # Charleston, SC
-        "South Dakota": (43.5446, -96.7311),    # Sioux Falls
-        "Tennessee": (36.1627, -86.7816),       # Nashville
-        "Texas": (29.7604, -95.3698),           # Houston
-        "Utah": (40.7608, -111.8910),           # Salt Lake City
-        "Vermont": (44.4759, -73.2121),         # Burlington
-        "Virginia": (36.8529, -75.9780),        # Virginia Beach
-        "Washington": (47.6062, -122.3321),     # Seattle
-        "West Virginia": (38.3498, -81.6326),   # Charleston, WV
-        "Wisconsin": (43.0389, -87.9065),       # Milwaukee
-        "Wyoming": (41.13998, -104.82025),      # Cheyenne
-        "Puerto Rico": (18.4655, -66.1057)      # San Juan
+        "Alabama": (33.5207, -86.8025),         
+        "Alaska": (61.2181, -149.9003),          
+        "Arizona": (33.4484, -112.0740),         
+        "Arkansas": (34.7465, -92.2896),          
+        "California": (34.0522, -118.2437),       
+        "Colorado": (39.7392, -104.9903),        
+        "Connecticut": (41.1865, -73.1950),      
+        "Delaware": (39.7447, -75.5484),         
+        "District of Columbia": (38.9072, -77.0369),   
+        "Florida": (30.3322, -81.6557),          
+        "Georgia": (33.7490, -84.3880),          
+        "Hawaii": (21.3069, -157.8583),          
+        "Idaho": (43.6150, -116.2023),           
+        "Illinois": (41.8781, -87.6298),         
+        "Indiana": (39.7684, -86.1581),          
+        "Iowa": (41.5868, -93.6250),              
+        "Kansas": (37.6872, -97.3301),           
+        "Kentucky": (38.2527, -85.7585),         
+        "Louisiana": (29.9511, -90.0715),         
+        "Maine": (43.6591, -70.2568),            
+        "Maryland": (39.2904, -76.6122),         
+        "Massachusetts": (42.3601, -71.0589),    
+        "Michigan": (42.3314, -83.0458),         
+        "Minnesota": (44.9778, -93.2650),        
+        "Mississippi": (32.2988, -90.1848),      
+        "Missouri": (39.0997, -94.5786),         
+        "Montana": (45.7833, -108.5007),         
+        "Nebraska": (41.2565, -95.9345),         
+        "Nevada": (36.1699, -115.1398),           
+        "New Hampshire": (42.9956, -71.4548),    
+        "New Jersey": (40.7357, -74.1724),       
+        "New Mexico": (35.0844, -106.6504),      
+        "New York": (40.7128, -74.0060),           
+        "North Carolina": (35.2271, -80.8431),   
+        "North Dakota": (46.8772, -96.7898),     
+        "Ohio": (39.9612, -82.9988),             
+        "Oklahoma": (35.4676, -97.5164),        
+        "Oregon": (45.5051, -122.6750),         
+        "Pennsylvania": (39.9526, -75.1652),     
+        "Rhode Island": (41.8240, -71.4128),     
+        "South Carolina": (32.7765, -79.9311),  
+        "South Dakota": (43.5446, -96.7311),      
+        "Tennessee": (36.1627, -86.7816),        
+        "Texas": (29.7604, -95.3698),            
+        "Utah": (40.7608, -111.8910),              
+        "Vermont": (44.4759, -73.2121),          
+        "Virginia": (36.8529, -75.9780),          
+        "Washington": (47.6062, -122.3321),    
+        "West Virginia": (38.3498, -81.6326),   
+        "Wisconsin": (43.0389, -87.9065),       
+        "Wyoming": (41.13998, -104.82025),      
+        "Puerto Rico": (18.4655, -66.1057)      
     }
     
     insert_state_centroids(STATE_CENTROIDS)
@@ -459,7 +458,3 @@ def back_main():
     cleanup()
 
     start_gen()
-
-# Uncomment the following lines to run the main process directly:
-# if __name__ == "__main__":
-#     back_main()
