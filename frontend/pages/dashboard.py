@@ -143,7 +143,8 @@ def create_dashboard_page(go_to_heatmap, go_to_stats):
     data_button.setStyleSheet("""
         QPushButton {
             background-color: #2F3044;
-            border-radius: 20px;
+            border-radius: 60px;
+            border: 2px solid #FFFFFF;
         }
         QPushButton:hover {
             background-color: #44455A;
@@ -155,9 +156,19 @@ def create_dashboard_page(go_to_heatmap, go_to_stats):
     data_layout.setContentsMargins(0, 0, 0, 0)
     data_layout.setSpacing(0)
 
-    data_label = QLabel("Data Widgets Placeholder")
+    data_label = QLabel()
     data_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-    data_label.setStyleSheet("color: #FFFFFF; font-size: 16px;")
+    pixmap = QPixmap("./frontend/pages/samp_datavis.png")
+    if not pixmap.isNull():
+        scaled_pixmap = pixmap.scaled(
+            320, 420,
+            Qt.AspectRatioMode.IgnoreAspectRatio,
+            Qt.TransformationMode.SmoothTransformation
+        )
+        data_label.setPixmap(scaled_pixmap)
+    else:
+        data_label.setText("Data Preview Placeholder")
+        data_label.setStyleSheet("color: #FFFFFF; font-size: 16px;")
     data_layout.addWidget(data_label)
 
     content_layout.addWidget(data_button)

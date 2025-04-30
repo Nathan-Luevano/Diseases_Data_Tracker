@@ -73,7 +73,7 @@ def scrape_cdc_covid_data():
         if current_etag and cached_etag == current_etag:
             return []
         else:
-            print("ETag changed or not available. Proceeding with scrape.")
+            pass
     except Exception as e:
         print("Error checking ETag for CDC COVID data:", e)
     
