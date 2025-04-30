@@ -50,7 +50,7 @@ Diseases Data Tracker is dedicated to aggregating and visualizing the latest dat
 Ensure you have Python and pip installed. Then, install the required packages using:
 
 ```bash
-pip install requests requests-html pyqt6 folium PyQt6-WebEngine lxml_html_clean matplotlib
+pip install requests requests-html pyqt6 folium PyQt6-WebEngine lxml_html_clean matplotlib plotly pandas
 ```
 
 ### Linux Specific Requirements

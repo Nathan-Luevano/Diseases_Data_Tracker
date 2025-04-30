@@ -1,8 +1,10 @@
 import sys
 from PyQt6.QtWidgets import QApplication
 from dash import ModernDashboard
+from PyQt6.QtCore import Qt
 
 def main():
+    QApplication.setAttribute(Qt.ApplicationAttribute.AA_ShareOpenGLContexts)
     app = QApplication(sys.argv)
     
     try:
