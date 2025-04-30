@@ -4,10 +4,12 @@ from PyQt6.QtWidgets import (QFrame, QVBoxLayout, QHBoxLayout, QLabel,
 from PyQt6.QtCore import Qt, pyqtSignal, QThread
 from PyQt6.QtGui import QFont, QIcon
 import ollama
+import markdown
 
 class AIAssistantWorker(QThread):
-    """Worker thread for AI operations to prevent UI freezing"""
-    response_ready = pyqtSignal(str)
+    """Worker thread for AI operations with streaming to prevent UI freezing"""
+    token_ready = pyqtSignal(str)
+    response_complete = pyqtSignal()
     error_occurred = pyqtSignal(str)
     
     def __init__(self, prompt):
@@ -16,30 +18,38 @@ class AIAssistantWorker(QThread):
         
     def run(self):
         try:
-            response = ollama.chat(model='gemma3:1b', messages=[
-                {
-                    'role': 'system',
-                    'content': 'You are a helpful health and medical assistant. Focus on providing accurate information about diseases, treatments, and general health advice. When appropriate, suggest search terms for further research and recommend reliable sources like .gov, .edu, or respected medical journals. Never provide definitive medical diagnosis or treatment plans, always encourage consulting with healthcare professionals.'
-                },
-                {
-                    'role': 'user',
-                    'content': self.prompt
-                }
-            ])
+            stream = ollama.chat(
+                model='gemma3:1b', 
+                messages=[
+                    {
+                        'role': 'system',
+                        'content': 'You are a helpful health and medical assistant. Focus on providing accurate information about diseases, treatments, and general health advice. When appropriate, suggest search terms for further research and recommend reliable sources like .gov, .edu, or respected medical journals. Never provide definitive medical diagnosis or treatment plans, always encourage consulting with healthcare professionals. Format your responses using Markdown.'
+                    },
+                    {
+                        'role': 'user',
+                        'content': self.prompt
+                    }
+                ],
+                stream=True  
+            )
             
-            if response and 'message' in response and 'content' in response['message']:
-                self.response_ready.emit(response['message']['content'])
-            else:
-                self.error_occurred.emit("Error: Received invalid response format from model")
+            for chunk in stream:
+                if 'message' in chunk and 'content' in chunk['message']:
+                    token = chunk['message']['content']
+                    if token:
+                        self.token_ready.emit(token)
+            
+            self.response_complete.emit()
         except Exception as e:
             self.error_occurred.emit(f"Error: {str(e)}")
 
 
 class MessageBubble(QFrame):
-    """Custom widget for chat message bubbles"""
+    """Custom widget for chat message bubbles with Markdown support"""
     def __init__(self, text, is_user=False, parent=None):
         super().__init__(parent)
         self.is_user = is_user
+        self.full_text = text
         
         self.setFrameShape(QFrame.Shape.StyledPanel)
         self.setFrameShadow(QFrame.Shadow.Raised)
@@ -47,10 +57,11 @@ class MessageBubble(QFrame):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(12, 10, 12, 10)
         
-        self.message_label = QLabel(text)
+        self.message_label = QLabel()
         self.message_label.setWordWrap(True)
         self.message_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         self.message_label.setOpenExternalLinks(True)
+        self.message_label.setTextFormat(Qt.TextFormat.RichText)
         
         if is_user:
             self.setStyleSheet("""
@@ -64,6 +75,7 @@ class MessageBubble(QFrame):
                     color: #FFFFFF;
                 }
             """)
+            self.message_label.setText(text)
         else:
             self.setStyleSheet("""
                 MessageBubble {
@@ -76,9 +88,20 @@ class MessageBubble(QFrame):
                     color: #FFFFFF;
                 }
             """)
+            html_content = markdown.markdown(text)
+            self.message_label.setText(html_content)
         
         layout.addWidget(self.message_label)
         self.setLayout(layout)
+    
+    def update_text(self, text):
+        """Update the text and reformat with Markdown if needed"""
+        self.full_text = text
+        if not self.is_user:
+            html_content = markdown.markdown(text)
+            self.message_label.setText(html_content)
+        else:
+            self.message_label.setText(text)
 
 
 def create_ai_assistant_page():
@@ -152,7 +175,7 @@ def create_ai_assistant_page():
     chat_scroll.setWidget(chat_container)
     main_layout.addWidget(chat_scroll, 1)
     
-    greeting_message = MessageBubble("Hello! I'm your AI health assistant powered by gemma3:1b. How can I help you with health or medical information today?", is_user=False)
+    greeting_message = MessageBubble("**Hello!** I'm your AI health assistant powered by gemma3:1b. *How can I help you with health or medical information today?*", is_user=False)
     chat_layout.addWidget(greeting_message)
     
     input_layout = QHBoxLayout()
@@ -176,6 +199,8 @@ def create_ai_assistant_page():
     main_layout.addWidget(status_label)
     
     worker = None
+    current_ai_message = None
+    accumulated_text = ""
     
     def send_message():
         text = message_input.text().strip()
@@ -191,19 +216,38 @@ def create_ai_assistant_page():
         message_input.setEnabled(False)
         send_button.setEnabled(False)
         
+        nonlocal current_ai_message, accumulated_text
+        accumulated_text = ""
+        current_ai_message = MessageBubble("", is_user=False)
+        chat_layout.addWidget(current_ai_message)
+        
         nonlocal worker
         worker = AIAssistantWorker(text)
-        worker.response_ready.connect(handle_response)
+        worker.token_ready.connect(handle_token)
+        worker.response_complete.connect(handle_response_complete)
         worker.error_occurred.connect(handle_error)
         worker.start()
-    
-    message_input.returnPressed.connect(send_message)
-    send_button.clicked.connect(send_message)
-    
-    def handle_response(response_text):
-        ai_message = MessageBubble(response_text, is_user=False)
-        chat_layout.addWidget(ai_message)
         
+        QApplication.processEvents()
+        chat_scroll.verticalScrollBar().setValue(
+            chat_scroll.verticalScrollBar().maximum()
+        )
+    
+    def handle_token(token):
+        """Handle each token as it comes in from the streaming response"""
+        nonlocal accumulated_text
+        accumulated_text += token
+        
+        if current_ai_message:
+            current_ai_message.update_text(accumulated_text)
+            
+        QApplication.processEvents()
+        chat_scroll.verticalScrollBar().setValue(
+            chat_scroll.verticalScrollBar().maximum()
+        )
+    
+    def handle_response_complete():
+        """Handle completion of the AI response"""
         status_label.setText("")
         message_input.setEnabled(True)
         send_button.setEnabled(True)
@@ -215,7 +259,13 @@ def create_ai_assistant_page():
         )
     
     def handle_error(error_text):
-        error_message = MessageBubble(f"Error: {error_text}\n\nPlease check if Ollama is running and gemma3:1b model is installed.", is_user=False)
+        nonlocal current_ai_message
+        
+        if current_ai_message:
+            current_ai_message.setParent(None)
+            current_ai_message = None
+        
+        error_message = MessageBubble(f"**Error:** {error_text}\n\n*Please check if Ollama is running and gemma3:1b model is installed.*", is_user=False)
         chat_layout.addWidget(error_message)
         
         status_label.setText("")
@@ -226,5 +276,8 @@ def create_ai_assistant_page():
         chat_scroll.verticalScrollBar().setValue(
             chat_scroll.verticalScrollBar().maximum()
         )
+    
+    message_input.returnPressed.connect(send_message)
+    send_button.clicked.connect(send_message)
     
     return page_frame
