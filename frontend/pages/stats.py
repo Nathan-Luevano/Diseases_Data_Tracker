@@ -78,7 +78,6 @@ class HealthStatsWidget(QFrame):
         
         try:
             self.conn = sqlite3.connect(DB_PATH)
-            print(f"Connected to database at {DB_PATH}")
         except sqlite3.Error as e:
             QMessageBox.critical(self, "Database Error", f"Could not connect to database: {e}")
             return
@@ -389,7 +388,6 @@ class HealthStatsWidget(QFrame):
         """Close database connection"""
         if hasattr(self, 'conn') and self.conn:
             self.conn.close()
-            print("Database connection closed")
 
 
 def create_stats_page():

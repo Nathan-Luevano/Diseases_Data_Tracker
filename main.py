@@ -5,7 +5,6 @@ from Backend.main import back_main
 import time
 
 def main():
-    strt = time.time()
     back_main()
     app = QApplication(sys.argv)
     
@@ -14,7 +13,6 @@ def main():
             app.setStyleSheet(f.read())
     except Exception as e:
         print("Error loading stylesheet:", e)
-    print(time.time()-strt)
     window = ModernDashboard()
     window.show()
     sys.exit(app.exec())

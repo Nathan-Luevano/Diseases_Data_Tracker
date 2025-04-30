@@ -11,8 +11,7 @@ def main():
         with open("styles.qss", "r") as f:
             app.setStyleSheet(f.read())
     except Exception as e:
-        print("Error loading stylesheet:", e)
-    
+        pass
     window = ModernDashboard()
     window.show()
     sys.exit(app.exec())
