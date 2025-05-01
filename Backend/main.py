@@ -1,6 +1,8 @@
+import os
 import csv
 import sqlite3
 import sys
+os.environ["PYPPETEER_CHROMIUM_REVISION"] = "1045629"  
 import requests
 from requests_html import HTMLSession
 from Backend.generate_heatmap import start_gen
